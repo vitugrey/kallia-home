@@ -17,11 +17,11 @@ _(A ajustar conforme a realidade do projeto)_
 - **Gerenciado de pacote:** uv
 - **Backend:** Python + Django 
 - **Banco de Dados:** SQLite para persistência
-- **Visão Computacional:** rpicam + [OpenCV ou face_recognition ou MediaPipe]
+- **Visão Computacional:** Picamera2 (para acesso rápido via libcamera) + face_recognition (embeddings) + OpenCV (imagens/matrizes)
 - **STT:** [faster_whisper ou assemblyai ou SpeechRecognition]
 - **TTS:** [gTTS ou Edge-TTS ou qwen3TTS]
 - **IA/Modelos:** Ollama (gpt-oss:120b-cloud)
-- **Algums libs:** django, sqlite3, request, rpicam, opencv-python, pillow, face-recognition, mediapipe, assemblyai, faster-whisper, speech-recognition, edge-tts, pygame, qwen3, tavily, openai, ollama, qrcode, scapy
+- **Algums libs:** django, sqlite3, request, picamera2, opencv-python, pillow, face-recognition, mediapipe, assemblyai, faster-whisper, speech-recognition, edge-tts, pygame, qwen3, tavily, openai, ollama, qrcode, scapy
 
 
 ## 3. Lista de Compras (Hardware Essencial)
@@ -52,8 +52,8 @@ Responsável por gerenciar quem está na frente do espelho e seus dispositivos.
 Lida exclusivamente com a câmera e detecção.
 
 - **Models:** Geralmente não possui models no banco de dados. Ele apenas processa as imagens e consome os models do app users para bater os rostos.
-- **Serviços:** `StreamService: Gerencia a inicialização e o buffer da câmera utilizando o rpicam (garantindo que ele rode de forma otimizada no Pi sem travar o resto do sistema)`, `FaceRecognitionService: Pega o frame do rpicam, passa pelo MediaPipe/OpenCV e retorna o ID do usuário (ou "Desconhecido").`, 
-- **Jobs:** `vision_watcher_job: Esse é o processo contínuo (uma thread ou script secundário) que fica constantemente analisando o feed de vídeo. Assim como um script que você configuraria para iniciar junto com o boot do sistema operacional, esse job precisa subir automaticamente e rodar em segundo plano, enviando sinais (via Websockets/Channels) para o frontend apenas quando o estado muda (ex: "rosto detectado" ou "rosto sumiu").`
+- **Serviços:** `FaceRecognitionService: Pega o frame do picamera2, transforma os rostos em vetores e retorna o Profile do usuário (ou "Desconhecido").`, `StreamService: Gerencia a inicialização e o buffer da câmera garantindo que ele rode de forma otimizada no Pi sem travar o sistema.`
+- **Jobs:** `vision_watcher_job: Esse é o processo contínuo (uma thread ou script secundário) que fica constantemente analisando o feed de vídeo.`
 
 ### app-network
 Responsável por colocar o usuário na mesma rede e rastreá-lo.
@@ -95,6 +95,10 @@ Este é o nosso registro de aprendizado. Sempre que batermos a cabeça em um pro
 5. **Reconhecimento facil e Captura de microfone**
  - **O Obstáculo**: Pessoa passa longe e a câmera captar o rosto e destravar o microfone, mas a pessoa só passou
  - **A Solução**: Colocar um periodo de tempo para a pessoa ficar no campo de visão e uma distância minima para começar a o reconhecimento do rosto e destravar o microfone. O mesmo serve para o deslog do usuário, colocar um tempo para deslogar do usuário. 
+
+6. **Acesso à Câmera (libcamera) no Ambiente Virtual**
+ - **O Obstáculo**: O Raspberry Pi usa a biblioteca do sistema `picamera2`, mas nosso projeto roda isolado dentro do ambiente virtual do `uv`. Se tentarmos rodar scripts lá dentro, ele dá "ModuleNotFoundError: picamera2".
+ - **A Solução**: Precisamos criar nosso ambiente virtual ativando a flag `--system-site-packages` (ex: `uv venv --system-site-packages`). Assim, o Python do ambiente virtual consegue "enxergar" os drivers globais de hardware instalados via `apt` no Linux.
 
 ---
 
