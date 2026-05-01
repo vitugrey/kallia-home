@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kallia Home - Smart Mirror</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap');
+
+        /* O Espelho deve ter fundo PRETO PURO para a tela não brilhar e texto BRANCO */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Nada de scroll no espelho */
+            cursor: none; /* Oculta o mouse para dar ilusão de painel embutido */
+        }
+
+        /* Layout Grid para organizar os cantos do espelho */
+        .mirror-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            width: 100%;
+            height: 100vh;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .top-left { grid-column: 1; grid-row: 1; text-align: left; }
+        .top-center { grid-column: 2; grid-row: 1; text-align: center; }
+        .top-right { grid-column: 3; grid-row: 1; text-align: right; }
+        
+        .middle-center { 
+            grid-column: 1 / 4; 
+            grid-row: 2; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .bottom-center { grid-column: 1 / 4; grid-row: 3; text-align: center; }
+
+        /* Estilos dos Widgets */
+        .time-widget {
+            font-size: 5rem;
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        
+        .date-widget {
+            font-size: 1.5rem;
+            font-weight: 200;
+            color: #bbbbbb; /* Um branco levemente acinzentado para dar hierarquia visual */
+        }
+        
+        .greeting-widget {
+            font-size: 3.5rem;
+            font-weight: 200;
+            opacity: 0.9;
+        }
+        
+        .status-badge {
+            margin-top: 15px;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="mirror-container">
+        <!-- Topo Esquerdo: Relógio e Data -->
+        <div class="top-left">
+            <div class="time-widget" id="timeDisplay">00:00</div>
+            <div class="date-widget" id="dateDisplay">Carregando data...</div>
+        </div>
+
+        <!-- Topo Centro: Notificações -->
+        <div class="top-center">
+            <!-- Reservado para Notificações -->
+        </div>
+
+        <!-- Topo Direito: Clima -->
+        <div class="top-right">
+            <!-- Reservado para o Widget de Clima -->
+        </div>
+
+        <!-- Meio: Saudação Principal da Inteligência Artificial -->
+        <div class="middle-center">
+            <div class="greeting-widget" id="greetingDisplay">Detectando usuário...</div>
+            <div class="status-badge">Câmera em Standby</div>
+        </div>
+
+        <!-- Base: Notícias ou Lembretes -->
+        <div class="bottom-center">
+            <div class="news-widget" style="color: #888; font-weight: 200;">Kallia Home v1.0</div>
+        </div>
+    </div>
+
+    <!-- Scripts do Frontend -->
+    <script>
+        // Função para manter o relógio sempre atualizado
+        function updateTime() {
+            const now = new Date();
+            
+            // Formata e Atualiza a Hora (ex: 14:30)
+            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+            document.getElementById('timeDisplay').textContent = now.toLocaleTimeString('pt-BR', timeOptions);
+            
+            // Formata e Atualiza a Data (ex: Sexta-feira, 28 de Abril)
+            const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+            let dateString = now.toLocaleDateString('pt-BR', dateOptions);
+            // Garante que a primeira letra seja maiúscula para ficar bonito
+            dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+            
+            document.getElementById('dateDisplay').textContent = dateString;
+        }
+
+        // Roda a função uma vez agora, e depois a cada 1 segundo (1000ms)
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
