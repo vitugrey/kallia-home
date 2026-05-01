@@ -45,7 +45,8 @@
             text-align: center;
         }
 
-        .bottom-center { grid-column: 1 / 4; grid-row: 3; text-align: center; }
+        .bottom-left { grid-column: 1; grid-row: 3; text-align: left; align-self: end; padding-bottom: 10px; }
+        .bottom-center { grid-column: 1 / 4; grid-row: 3; text-align: center; align-self: end; }
 
         /* Estilos dos Widgets */
         .time-widget {
@@ -73,20 +74,32 @@
             color: #888888;
             margin-top: 5px;
         }
-        
-        .greeting-widget {
-            font-size: 3.5rem;
+
+        .news-widget {
+            margin-top: 35px;
+            font-size: 1.2rem;
+            color: #999999;
             font-weight: 200;
-            opacity: 0.9;
+            line-height: 1.4;
+            max-width: 400px;
+            float: right; /* Mantém colado na borda direita */
+        }
+
+        .news-item {
+            margin-bottom: 15px;
+            text-align: justify; /* Justificado a pedido do usuário */
+            text-align-last: right; /* A última linha gruda na direita */
+            border-right: 2px solid rgba(255, 255, 255, 0.2);
+            padding-right: 15px;
         }
         
         .status-badge {
-            margin-top: 15px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             background-color: rgba(255, 255, 255, 0.1);
-            padding: 5px 15px;
+            padding: 5px 12px;
             border-radius: 20px;
             color: #aaaaaa;
+            display: inline-block;
         }
     </style>
 </head>
@@ -101,7 +114,7 @@
             <!-- Reservado para Notificações -->
         </div>
 
-        <!-- Topo Direito: Relógio, Data e Clima -->
+        <!-- Topo Direito: Relógio, Data, Clima e Notícias -->
         <div class="top-right">
             <div class="time-widget" id="timeDisplay">00:00</div>
             <div class="date-widget" id="dateDisplay">Carregando data...</div>
@@ -111,19 +124,25 @@
                 <span id="weatherTemp">--°C</span>
                 <div class="weather-desc" id="weatherDesc">Carregando clima...</div>
             </div>
+
+            <!-- Widget de Notícias -->
+            <div id="newsDisplay" class="news-widget">
+                Carregando notícias...
+            </div>
         </div>
 
         <!-- Meio: Saudação Principal da Inteligência Artificial -->
         <div class="middle-center">
-            <div class="greeting-widget" id="greetingDisplay">Detectando usuário...</div>
-            <div class="status-badge">Câmera em Standby</div>
+            <!-- Saudação removida para dar um aspecto mais limpo -->
         </div>
 
-        <!-- Base: Notícias ou Lembretes -->
+        <!-- Base Esquerda: Status da Câmera -->
+        <div class="bottom-left">
+            <div class="status-badge" id="cameraStatus">Câmera em Standby</div>
+        </div>
+
+        <!-- Base Centro: Vazio -->
         <div class="bottom-center">
-            <div id="newsDisplay" style="color: #888; font-weight: 200; font-size: 1.6rem; text-align: center; max-width: 800px; margin: 0 auto; line-height: 1.5;">
-                Carregando notícias...
-            </div>
         </div>
     </div>
 
@@ -166,7 +185,7 @@
                 if (data.news && data.news.length > 0) {
                     let htmlNews = "";
                     data.news.forEach(headline => {
-                        htmlNews += `<div style="margin-bottom: 10px;">• ${headline}</div>`;
+                        htmlNews += `<div class="news-item">${headline}</div>`;
                     });
                     newsContainer.innerHTML = htmlNews;
                 } else {
