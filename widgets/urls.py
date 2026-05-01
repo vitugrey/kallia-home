@@ -4,4 +4,6 @@ from . import views
 urlpatterns = [
     # A rota raiz (vazia) vai exibir a interface do espelho
     path('', views.mirror_view, name='mirror_home'),
+    # Nossa API para o Front-End
+    path('api/data/', views.api_widgets_data, name='api_widgets_data'),
 ]
