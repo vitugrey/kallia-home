@@ -4,16 +4,17 @@ from django.core.cache import cache
 
 class NewsFetcherService:
     @staticmethod
-    def get_news(category="geral"):
+    def get_news(category="geral", force_refresh=False):
         """
         Busca as principais manchetes usando o feed RSS do G1.
         Não precisa de chaves de API, e o XML é super leve.
         """
         cache_key = f"news_data_{category}"
-        cached_data = cache.get(cache_key)
         
-        if cached_data:
-            return cached_data
+        if not force_refresh:
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                return cached_data
             
         try:
             # RSS público de notícias

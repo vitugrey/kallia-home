@@ -3,17 +3,18 @@ from django.core.cache import cache
 
 class WeatherFetcherService:
     @staticmethod
-    def get_weather(lat, lon):
+    def get_weather(lat, lon, force_refresh=False):
         """
         Busca o clima atual baseado nas coordenadas.
         Utiliza o cache do Django para não estourar os limites da API e deixar a tela rápida.
         """
         # Cria uma chave única no cache para essa localização específica
         cache_key = f"weather_data_{lat}_{lon}"
-        cached_data = cache.get(cache_key)
         
-        if cached_data:
-            return cached_data
+        if not force_refresh:
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                return cached_data
             
         try:
             # API do Open-Meteo (Gratuita e sem necessidade de cadastro)
