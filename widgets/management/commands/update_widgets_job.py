@@ -18,7 +18,7 @@ class Command(BaseCommand):
             if not preferences:
                 self.stdout.write(" -> Nenhum perfil encontrado. Atualizando cache padrão do Rio de Janeiro.")
                 WeatherFetcherService.get_weather(-22.9064, -43.1822, force_refresh=True)
-                NewsFetcherService.get_news("tecnologia", force_refresh=True)
+                NewsFetcherService.get_news("geral", force_refresh=True)
             else:
                 for pref in preferences:
                     self.stdout.write(f" -> Renova cache para: {pref.profile.name}")
