@@ -15,8 +15,8 @@
             height: 100%;
             background-color: #000000;
             color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Nada de scroll no espelho */
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Remove scrollbars globais do navegador/espelho */
             cursor: none; /* Oculta o mouse para dar ilusão de painel embutido */
         }
 
@@ -30,7 +30,7 @@
             height: 600px;
             /* Centraliza a tela para visualização no PC */
             margin: 0 auto;
-            padding: 40px;
+            padding: 25px; /* Reduzido de 40 para 25 para dar mais espaço de respiro vertical */
             box-sizing: border-box;
             position: relative;
         }
@@ -67,8 +67,8 @@
         }
         
         .weather-widget {
-            margin-top: 25px;
-            font-size: 3.5rem;
+            margin-top: 15px; /* Reduzido */
+            font-size: 3rem; /* Reduzido levemente para caber melhor */
             font-weight: 200;
             line-height: 1;
         }
@@ -80,17 +80,17 @@
         }
 
         .news-widget {
-            margin-top: 35px;
-            font-size: 1.2rem;
+            margin-top: 20px; /* Reduzido */
+            font-size: 1.05rem; /* Reduzido de 1.2rem para diminuir quebras de linha */
             color: #999999;
             font-weight: 200;
             line-height: 1.4;
-            max-width: 400px;
+            max-width: 480px; /* Aumentado de 400px para usar mais a horizontal do que a vertical */
             float: right; /* Mantém colado na borda direita */
         }
 
         .news-item {
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* Reduzido de 15px */
             text-align: justify; /* Justificado a pedido do usuário */
             text-align-last: right; /* A última linha gruda na direita */
             border-right: 2px solid rgba(255, 255, 255, 0.2);
