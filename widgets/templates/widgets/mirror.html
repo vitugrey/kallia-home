@@ -178,13 +178,12 @@
             100% { transform: scale(1); opacity: 0.8; }
         }
         .mic-pulse {
-            animation: pulse 1.5s infinite;
-        }
-        
     </style>
 </head>
 <body>
-    
+    <!-- PLAYER DE ÁUDIO INVISÍVEL -->
+    <audio id="greetingAudio" style="display: none;"></audio>
+
     <!-- PAINEL DE DEBUG PARA O NOTEBOOK (Invisível no espelho real) -->
     <div style="position: absolute; top: 5px; left: 5px; background: rgba(30,30,30,0.8); padding: 10px; border-radius: 8px; z-index: 999; font-size: 12px; display: flex; flex-direction: column; gap: 5px;">
         <div style="color: #00ffcc; font-weight: bold; margin-bottom: 5px;">[DEBUG] Simulador de Câmera/STT</div>
@@ -211,21 +210,24 @@
             <div class="time-widget" id="timeDisplay">00:00</div>
             <div class="date-widget" id="dateDisplay">Carregando data...</div>
             
-            <!-- Widget de Clima do RJ -->
-            <div class="weather-widget">
-                <span id="weatherTemp">--°C</span>
-                <div class="weather-desc" id="weatherDesc">Carregando clima...</div>
-            </div>
+            <!-- CAIXA DE WIDGETS PERSONALIZADOS (Só aparece quando Logado) -->
+            <div id="personalizedWidgets" style="display: none; margin-top: 15px;">
+                <!-- Widget de Clima do RJ -->
+                <div class="weather-widget">
+                    <span id="weatherTemp">--°C</span>
+                    <div class="weather-desc" id="weatherDesc">Carregando clima...</div>
+                </div>
 
-            <!-- Widget de Notícias (Manchetes) -->
-            <div id="newsDisplay" class="news-widget">
-                Carregando notícias...
-            </div>
-            
-            <!-- Widget de Notícia Completa (Escondido) -->
-            <div id="newsDetailDisplay" class="news-widget" style="display: none;">
-                <div class="news-detail-content" id="newsDetailText"></div>
-                <div class="back-btn" onclick="hideNewsDetail()">⬅ Voltar para as manchetes</div>
+                <!-- Widget de Notícias (Manchetes) -->
+                <div id="newsDisplay" class="news-widget">
+                    Carregando notícias...
+                </div>
+                
+                <!-- Widget de Notícia Completa (Escondido) -->
+                <div id="newsDetailDisplay" class="news-widget" style="display: none;">
+                    <div class="news-detail-content" id="newsDetailText"></div>
+                    <div class="back-btn" onclick="hideNewsDetail()">⬅ Voltar para as manchetes</div>
+                </div>
             </div>
         </div>
 
@@ -414,6 +416,8 @@
             }
         }
 
+        let lastAudioUrl = null;
+
         // --- Atualização Visual da Tela ---
         function updateScreenUI(state) {
             const panel = document.getElementById('onboardingPanel');
@@ -421,6 +425,7 @@
             const listening = document.getElementById('stateListening');
             const confirm = document.getElementById('stateConfirm');
             const badge = document.getElementById('cameraStatus');
+            const widgetsBox = document.getElementById('personalizedWidgets');
             
             // 1. Standby ou Conhecido
             if (state.status === "standby" || state.status === "known_detected") {
@@ -429,11 +434,28 @@
                     loggedPanel.style.display = 'block';
                     document.getElementById('loggedUserName').textContent = state.name;
                     badge.style.display = 'none'; // Esconde a badge de standby
+                    
+                    // MOSTRA OS WIDGETS
+                    widgetsBox.style.display = 'block';
+                    
+                    // TOCA O ÁUDIO DE CUMPRIMENTO (TTS)
+                    if (state.audio_url && state.audio_url !== lastAudioUrl) {
+                        lastAudioUrl = state.audio_url;
+                        const player = document.getElementById('greetingAudio');
+                        player.src = state.audio_url;
+                        // O catch captura se o navegador bloquear autoplay por falta de interação prévia (no Chrome)
+                        player.play().catch(e => console.log("Bloqueado por falta de interação na página:", e));
+                    }
+                    
                 } else {
                     loggedPanel.style.display = 'none';
                     badge.style.display = 'inline-block';
                     badge.textContent = "Câmera em Standby";
                     badge.style.color = "#aaaaaa";
+                    
+                    // ESCONDE OS WIDGETS PARA TELA LIMPA
+                    widgetsBox.style.display = 'none';
+                    lastAudioUrl = null; // reseta para tocar de novo na próxima entrada
                 }
             } 
             // 2. Desconhecido (Liga o microfone do Onboarding)
@@ -445,6 +467,7 @@
                 panel.style.display = 'block';
                 listening.style.display = 'block';
                 confirm.style.display = 'none';
+                widgetsBox.style.display = 'none';
             }
             // 3. Confirmando o nome
             else if (state.status === "onboarding_confirm_name") {
@@ -452,6 +475,7 @@
                 panel.style.display = 'block';
                 listening.style.display = 'none';
                 confirm.style.display = 'block';
+                widgetsBox.style.display = 'none';
                 
                 let htmlOpts = "";
                 if(state.options) {

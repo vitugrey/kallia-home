@@ -61,6 +61,16 @@ def api_debug_set_state(request):
     """
     if request.method == "POST":
         data = json.loads(request.body)
+        
+        # [NOVIDADE]: Se estivermos simulando a detecção de um rosto conhecido,
+        # vamos usar o Edge TTS para gerar o áudio!
+        if data.get("status") == "known_detected":
+            name = data.get("name", "Usuário")
+            from users.services.tts_service import TTSService
+            audio_url = TTSService.generate_greeting(name)
+            # Adiciona a URL do áudio no pacote de estado que o HTML vai receber
+            data["audio_url"] = audio_url
+            
         MirrorStateService.set_state(data)
         return JsonResponse({"success": True})
     return JsonResponse({"success": False})
