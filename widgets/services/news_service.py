@@ -15,6 +15,9 @@ class NewsFetcherService:
         if not force_refresh:
             cached_data = cache.get(cache_key)
             if cached_data:
+                # Sorteia 3 manchetes a cada requisição para não congelar a tela
+                if len(cached_data) >= 3:
+                    return random.sample(cached_data, 3)
                 return cached_data
             
         try:
@@ -34,15 +37,13 @@ class NewsFetcherService:
                 title = item.find('title').text
                 all_headlines.append(title)
                 
-            # Sorteia 3 manchetes aleatórias para que a tela não fique "congelada" na mesma notícia por dias
+            # Salva TODAS as 15 no cache por 3 horas (10800 segundos) para poupar internet
+            cache.set(cache_key, all_headlines, 10800)
+            
+            # Sorteia 3 para a resposta imediata
             if len(all_headlines) >= 3:
-                headlines = random.sample(all_headlines, 3)
-            else:
-                headlines = all_headlines
-                
-            # Salva no cache por 3 horas (10800 segundos) para poupar internet
-            cache.set(cache_key, headlines, 10800)
-            return headlines
+                return random.sample(all_headlines, 3)
+            return all_headlines
             
         except Exception as e:
             print(f"[NewsFetcherService] Erro ao buscar notícias RSS: {e}")
