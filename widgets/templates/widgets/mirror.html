@@ -144,39 +144,40 @@
             color: #aaaaaa;
             display: inline-block;
         }
-        .btn-primary {
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            font-family: inherit;
-        }
-        .btn-primary:active { transform: scale(0.95); }
-        
-        .btn-secondary {
+        .btn-discreet {
             background-color: transparent;
-            color: #aaaaaa;
-            border: 2px solid #555555;
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            border-radius: 20px;
+            color: #888888;
+            border: 1px solid #444444;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-family: inherit;
+            width: 100%;
             transition: color 0.3s, border-color 0.3s;
+            font-family: inherit;
         }
-        .btn-secondary:hover { color: #ffffff; border-color: #ffffff; }
+        .btn-discreet:hover { color: #ffffff; border-color: #ffffff; }
         
+        .btn-option {
+            background-color: rgba(255,255,255,0.1);
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.2s;
+            font-family: inherit;
+        }
+        .btn-option:hover { background-color: rgba(255,255,255,0.3); }
+
         @keyframes pulse {
             0% { transform: scale(1); opacity: 0.8; }
             50% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(1); opacity: 0.8; }
         }
         .mic-pulse {
-            font-size: 4rem;
             animation: pulse 1.5s infinite;
         }
         
@@ -188,37 +189,12 @@
     <div style="position: absolute; top: 5px; left: 5px; background: rgba(30,30,30,0.8); padding: 10px; border-radius: 8px; z-index: 999; font-size: 12px; display: flex; flex-direction: column; gap: 5px;">
         <div style="color: #00ffcc; font-weight: bold; margin-bottom: 5px;">[DEBUG] Simulador de Câmera/STT</div>
         <button onclick="debugSetState({status: 'unknown_detected'})">1. Detectar Desconhecido</button>
-        <button onclick="debugSetState({status: 'onboarding_confirm_name', options: ['Vitor', 'Victor', 'Vitão']})">2. Simular STT "Vitor"</button>
+        <button onclick="debugSetState({status: 'onboarding_confirm_name', options: ['Vitor', 'Senhor Vitor', 'Mestre Vitor', 'Lorde Vitor']})">2. Simular STT "Vitor"</button>
         <button onclick="debugSetState({status: 'known_detected', name: 'Vitor'})">3. Detectar Conhecido (Vitor)</button>
         <button onclick="debugSetState({status: 'standby'})">4. Voltar para Standby (Espelho Limpo)</button>
     </div>
 
-    <!-- OVERLAY DE RECONHECIMENTO (Ocupa a tela inteira com fundo escuro) -->
-    <div id="onboardingOverlay" style="display: none; position: absolute; top:0; left:0; width: 1024px; height: 600px; background: rgba(0,0,0,0.85); z-index: 100; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-        
-        <!-- ESTADO 1: Escutando o nome do desconhecido -->
-        <div id="stateListening" style="display: none; width: 100%;">
-            <div style="font-size: 3.5rem; margin-bottom: 20px; font-weight: 200;">👤 Rosto Desconhecido</div>
-            <div style="font-size: 1.5rem; color: #aaaaaa; margin-bottom: 60px; font-weight: 200;">Diga o seu nome em voz alta...</div>
-            
-            <!-- Animação do Microfone -->
-            <div class="mic-pulse">🎤</div>
-            
-            <!-- Tratamento de Falso Negativo -->
-            <div style="margin-top: 100px;">
-                <button class="btn-secondary" onclick="retryRecognition()">🔄 Já sou cadastrado (Tentar novamente)</button>
-            </div>
-        </div>
-
-        <!-- ESTADO 2: STT entendeu algo, confirmar qual nome salvar -->
-        <div id="stateConfirm" style="display: none; width: 100%;">
-            <div style="font-size: 2.5rem; margin-bottom: 50px; font-weight: 200;">Como deseja ser chamado na tela?</div>
-            <div id="nameOptions" style="display: flex; gap: 20px; justify-content: center;">
-                <!-- Os botões com as opções geradas pela IA vão aparecer aqui via JS -->
-            </div>
-        </div>
-        
-    </div>
+    <!-- Overlay removido a pedido do usuário, a UI agora é discreta no bottom-left -->
 
     <div class="mirror-container">
         <!-- Topo Esquerdo: Vazio -->
@@ -260,6 +236,32 @@
 
         <!-- Base Esquerda: Status da Câmera -->
         <div class="bottom-left">
+            
+            <!-- Painel Discreto de Onboarding -->
+            <div id="onboardingPanel" style="display: none; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); width: 280px; backdrop-filter: blur(5px);">
+                
+                <!-- ESTADO 1: Escutando nome -->
+                <div id="stateListening" style="display: none;">
+                    <div style="font-size: 1.1rem; color: #fff; margin-bottom: 10px;">👤 Rosto Desconhecido</div>
+                    <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 15px;">Diga o seu nome... <span class="mic-pulse" style="font-size: 1rem; display: inline-block;">🎤</span></div>
+                    
+                    <!-- Espaço para futura foto da câmera -->
+                    <div style="width: 100%; height: 100px; background: #111; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.8rem; border: 1px dashed #333;">
+                        [ Câmera Feed ]
+                    </div>
+                    
+                    <button class="btn-discreet" onclick="retryRecognition()">🔄 Tentar novamente</button>
+                </div>
+
+                <!-- ESTADO 2: Confirmar tratamento -->
+                <div id="stateConfirm" style="display: none;">
+                    <div style="font-size: 1.1rem; color: #fff; margin-bottom: 15px;">Como prefere ser chamado?</div>
+                    <div id="nameOptions" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Botões gerados via JS -->
+                    </div>
+                </div>
+            </div>
+
             <div class="status-badge" id="cameraStatus">Câmera em Standby</div>
         </div>
 
@@ -351,14 +353,14 @@
                 const response = await fetch('/api/status/');
                 const state = await response.json();
                 
-                const overlay = document.getElementById('onboardingOverlay');
+                const panel = document.getElementById('onboardingPanel');
                 const listening = document.getElementById('stateListening');
                 const confirm = document.getElementById('stateConfirm');
                 const badge = document.getElementById('cameraStatus');
                 
                 // 1. Standby ou Conhecido
                 if (state.status === "standby" || state.status === "known_detected") {
-                    overlay.style.display = 'none';
+                    panel.style.display = 'none';
                     if (state.status === "known_detected") {
                         badge.textContent = "Bem-vindo(a), " + state.name;
                         badge.style.color = "#ffffff";
@@ -369,20 +371,20 @@
                 } 
                 // 2. Desconhecido (Liga o microfone do Onboarding)
                 else if (state.status === "unknown_detected") {
-                    overlay.style.display = 'flex';
+                    panel.style.display = 'block';
                     listening.style.display = 'block';
                     confirm.style.display = 'none';
                 }
                 // 3. Confirmando o nome
                 else if (state.status === "onboarding_confirm_name") {
-                    overlay.style.display = 'flex';
+                    panel.style.display = 'block';
                     listening.style.display = 'none';
                     confirm.style.display = 'block';
                     
                     let htmlOpts = "";
                     if(state.options) {
                         state.options.forEach(opt => {
-                            htmlOpts += `<button class="btn-primary" onclick="selectName('${opt}')">${opt}</button>`;
+                            htmlOpts += `<button class="btn-option" onclick="selectName('${opt}')">${opt}</button>`;
                         });
                     }
                     document.getElementById('nameOptions').innerHTML = htmlOpts;
@@ -418,7 +420,7 @@
                 body: JSON.stringify({status: 'known_detected', name: name})
             });
             checkMirrorStatus();
-            alert("✅ Perfil de " + name + " salvo no banco de dados com sucesso!");
+            // Remoção do alert nativo, o espelho apenas volta ao estado de boas vindas
         }
 
         // Chama imediatamente e depois atualiza a cada 5 minutos
