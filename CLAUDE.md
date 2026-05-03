@@ -41,11 +41,14 @@ Para tornar o projeto físico uma realidade, precisaremos adquirir:
 
 ## 4. Serviços, Jobs e Models de Cada App
 
-### app-users
+### app-users (Parcialmente Concluído - TTS Pronto)
 Responsável por gerenciar quem está na frente do espelho e seus dispositivos.
 
-- **Models:** `Profile: Nome, caminho para o arquivo de áudio (paraTTS) de cumprimento personalizado.`, `Device: Vinculado a um Profile, contendo mac_address, last_ip e date_connected`, `FaceData: Caminho das fotos tiradas durante o onboarding ou embeddings (vetores) matemáticos do rosto.`
-- **Serviços:** `CreateUserService: Orquestra o primeiro cadastro (recebe o nome, salva as fotos, gera a resposta de voz).` , `DeviceRegistrationService: Recebe um IP/MAC detectado na rede e vincula ao Profile detectado.`
+- **Models:** `Profile: Nome, caminho para o arquivo de áudio (para TTS) de cumprimento personalizado.`, `Device: Vinculado a um Profile, contendo mac_address, last_ip e date_connected`, `FaceData: Caminho das fotos tiradas durante o onboarding ou embeddings (vetores) matemáticos do rosto.`
+- **Serviços:** 
+  - `CreateUserService`: Orquestra o primeiro cadastro.
+  - `DeviceRegistrationService`: Recebe um IP/MAC detectado na rede e vincula ao Profile detectado.
+  - `TTSService`: Gera áudios usando a Inteligência Artificial da Microsoft (`edge-tts`, voz feminina `pt-BR-FranciscaNeural`). A saudação é dinâmica baseada na hora do dia ("Bom dia", "Boa tarde", "Boa noite"). O áudio é salvo em `.mp3` para o Frontend tocar.
 - **Jobs:** Não há jobs contínuos pesados aqui, apenas as chamadas assíncronas para processar os áudios ou embeddings após o primeiro cadastro.
 
 ### app-vision
@@ -66,8 +69,15 @@ Responsável por colocar o usuário na mesma rede e rastreá-lo.
 Os módulos visuais como clima, agenda e notícias.
 
 - **Models:** `WidgetPreference: Tabela que liga um Profile a uma configuração.`
-- **Serviços:** `WeatherFetcherService: Bate na API de clima (Open-Meteo) com Cache FileBased.`, `NewsFetcherService: Traz as manchetes do RSS do G1 com embaralhamento e cache.`
+- **Serviços:** 
+  - `WeatherFetcherService`: Bate na API de clima (Open-Meteo) com Cache FileBased.
+  - `NewsFetcherService`: Traz as manchetes do RSS do G1 com embaralhamento e cache.
+  - `MirrorStateService`: O Cérebro do espelho. Mantém o estado atual da câmera (`standby`, `unknown_detected`, `known_detected`) no cache para sincronizar o Back-end (Python) com o Front-end (HTML).
 - **Jobs:** `update_widgets_job: Job contínuo que roda a cada hora limpando e atualizando o cache para a tela responder na velocidade da luz.`
+- **Lógica e UX de Front-end:**
+  - O Front-end realiza **Polling** a cada 2 segundos no Cérebro para atualizar a UI.
+  - **Grace Period (Anti-Falso Negativo):** Quando a câmera deixa de ver o usuário logado, a sessão não cai na hora. O espelho aguarda 10 segundos de "carência" antes de limpar a tela. Se a pessoa voltar em menos de 10s (ex: abaixou pra pegar algo), o cronômetro cancela e a sessão continua.
+  - **Clean UI (Tela Limpa):** O espelho esconde todos os widgets quando está em Standby (mostra só o relógio). Ao detectar um rosto conhecido, os widgets surgem, o áudio de cumprimento (`greetingAudio`) é tocado invisivelmente e a Pílula de "Sessão Ativa" aparece.
 
 
 ---
