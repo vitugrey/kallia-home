@@ -280,7 +280,7 @@
                 </div>
                 <!-- Botão Sair Discreto -->
                 <div style="text-align: center; margin-top: 6px;">
-                    <span style="font-size: 0.7rem; color: #555; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s;" onclick="debugSetState({status: 'standby'})" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Sair</span>
+                    <span style="font-size: 0.7rem; color: #555; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s;" onclick="manualLogout()" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Sair</span>
                 </div>
             </div>
 
@@ -368,60 +368,98 @@
             document.getElementById('newsDisplay').style.display = 'block';
         }
 
+        // Variáveis para gerenciar o "Falso Negativo" (ocultamento temporário do rosto)
+        let logoutGraceTimer = null;
+        let currentScreenStatus = "standby";
+
         // --- Cérebro Principal (Polling de Estado do Espelho) ---
         async function checkMirrorStatus() {
             try {
-                // Bate na nossa API a cada 2 segundos pra ver se a câmera viu alguém
+                // Bate na API a cada 2 segundos
                 const response = await fetch('/api/status/');
                 const state = await response.json();
                 
-                const panel = document.getElementById('onboardingPanel');
-                const loggedPanel = document.getElementById('userLoggedContainer');
-                const listening = document.getElementById('stateListening');
-                const confirm = document.getElementById('stateConfirm');
-                const badge = document.getElementById('cameraStatus');
+                // Se o backend pedir standby, mas a tela estava logada (o usuário "sumiu" da câmera agora)
+                if (state.status === "standby" && currentScreenStatus === "known_detected" && !state.force_logout) {
+                    if (!logoutGraceTimer) {
+                        // Inicia o cronômetro de 10 segundos de tolerância (Grace Period)
+                        logoutGraceTimer = setTimeout(() => {
+                            currentScreenStatus = "standby";
+                            updateScreenUI(state);
+                            logoutGraceTimer = null;
+                        }, 10000); 
+                    }
+                    // Ignora a atualização da UI enquanto o tempo não estourar (mantém logado na tela)
+                    return; 
+                }
                 
-                // 1. Standby ou Conhecido
-                if (state.status === "standby" || state.status === "known_detected") {
-                    panel.style.display = 'none';
-                    if (state.status === "known_detected") {
-                        loggedPanel.style.display = 'block';
-                        document.getElementById('loggedUserName').textContent = state.name;
-                        badge.style.display = 'none'; // Esconde a badge de standby
-                    } else {
-                        loggedPanel.style.display = 'none';
-                        badge.style.display = 'inline-block';
-                        badge.textContent = "Câmera em Standby";
-                        badge.style.color = "#aaaaaa";
+                // Se a câmera viu alguém de novo (ou estado mudou), cancela o cronômetro de logout
+                if (state.status !== "standby" || state.force_logout) {
+                    if (logoutGraceTimer) {
+                        clearTimeout(logoutGraceTimer);
+                        logoutGraceTimer = null;
                     }
-                } 
-                // 2. Desconhecido (Liga o microfone do Onboarding)
-                else if (state.status === "unknown_detected") {
-                    loggedPanel.style.display = 'none';
-                    badge.style.display = 'inline-block';
-                    badge.textContent = "Reconhecendo...";
-                    badge.style.color = "#00ffcc";
-                    panel.style.display = 'block';
-                    listening.style.display = 'block';
-                    confirm.style.display = 'none';
+                    currentScreenStatus = state.status;
+                    updateScreenUI(state);
+                    return;
                 }
-                // 3. Confirmando o nome
-                else if (state.status === "onboarding_confirm_name") {
-                    loggedPanel.style.display = 'none';
-                    panel.style.display = 'block';
-                    listening.style.display = 'none';
-                    confirm.style.display = 'block';
-                    
-                    let htmlOpts = "";
-                    if(state.options) {
-                        state.options.forEach(opt => {
-                            htmlOpts += `<button class="btn-option" onclick="selectName('${opt}')">${opt}</button>`;
-                        });
-                    }
-                    document.getElementById('nameOptions').innerHTML = htmlOpts;
+                
+                // Se já estava standby e continua standby, só atualiza UI caso necessário
+                if (state.status === "standby" && currentScreenStatus === "standby") {
+                    updateScreenUI(state);
                 }
+                
             } catch (error) {
                 console.error("Erro ao checar status do cérebro:", error);
+            }
+        }
+
+        // --- Atualização Visual da Tela ---
+        function updateScreenUI(state) {
+            const panel = document.getElementById('onboardingPanel');
+            const loggedPanel = document.getElementById('userLoggedContainer');
+            const listening = document.getElementById('stateListening');
+            const confirm = document.getElementById('stateConfirm');
+            const badge = document.getElementById('cameraStatus');
+            
+            // 1. Standby ou Conhecido
+            if (state.status === "standby" || state.status === "known_detected") {
+                panel.style.display = 'none';
+                if (state.status === "known_detected") {
+                    loggedPanel.style.display = 'block';
+                    document.getElementById('loggedUserName').textContent = state.name;
+                    badge.style.display = 'none'; // Esconde a badge de standby
+                } else {
+                    loggedPanel.style.display = 'none';
+                    badge.style.display = 'inline-block';
+                    badge.textContent = "Câmera em Standby";
+                    badge.style.color = "#aaaaaa";
+                }
+            } 
+            // 2. Desconhecido (Liga o microfone do Onboarding)
+            else if (state.status === "unknown_detected") {
+                loggedPanel.style.display = 'none';
+                badge.style.display = 'inline-block';
+                badge.textContent = "Reconhecendo...";
+                badge.style.color = "#00ffcc";
+                panel.style.display = 'block';
+                listening.style.display = 'block';
+                confirm.style.display = 'none';
+            }
+            // 3. Confirmando o nome
+            else if (state.status === "onboarding_confirm_name") {
+                loggedPanel.style.display = 'none';
+                panel.style.display = 'block';
+                listening.style.display = 'none';
+                confirm.style.display = 'block';
+                
+                let htmlOpts = "";
+                if(state.options) {
+                    state.options.forEach(opt => {
+                        htmlOpts += `<button class="btn-option" onclick="selectName('${opt}')">${opt}</button>`;
+                    });
+                }
+                document.getElementById('nameOptions').innerHTML = htmlOpts;
             }
         }
 
@@ -432,6 +470,15 @@
                 body: JSON.stringify(stateObj)
             });
             checkMirrorStatus(); // atualiza a UI imediatamente
+        }
+
+        async function manualLogout() {
+            // Força o logout na hora, sem a tolerância de 10 segundos
+            await fetch('/api/debug/set_state/', {
+                method: 'POST',
+                body: JSON.stringify({status: 'standby', force_logout: true})
+            });
+            checkMirrorStatus();
         }
 
         async function retryRecognition() {
