@@ -35,7 +35,21 @@ class NewsFetcherService:
             # Pega as top 15 notícias para ter bastante variação
             for item in root.findall('./channel/item')[:15]:
                 title = item.find('title').text
-                all_headlines.append(title)
+                
+                # Alguns feeds não tem description. Pegamos se existir.
+                desc_elem = item.find('description')
+                description = desc_elem.text if desc_elem is not None else "Sem descrição disponível."
+                
+                # O G1 e outros RSS costumam colocar tags HTML (como <img> e <br>) dentro da description.
+                # Removemos as tags HTML com uma limpeza simples para não quebrar nosso layout
+                import re
+                clean_desc = re.sub('<[^<]+>', '', description).strip()
+                
+                # Adiciona como um dicionário
+                all_headlines.append({
+                    "title": title,
+                    "description": clean_desc
+                })
                 
             # Salva TODAS as 15 no cache por 3 horas (10800 segundos) para poupar internet
             cache.set(cache_key, all_headlines, 10800)

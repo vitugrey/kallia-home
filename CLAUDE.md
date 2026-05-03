@@ -31,7 +31,7 @@ Para tornar o projeto físico uma realidade, precisaremos adquirir:
 - **Computador:** Raspberry Pi 4 (Mínimo 4GB de RAM, mas 8GB é o ideal para IA)
 - **Armazenamento:** Cartão MicroSD (32GB ou 64GB, preferencialmente classe A2 para leitura/escrita rápida)
 - **Energia:** Fonte de alimentação oficial Raspberry Pi (5V/3A - 15W) ou superior
-- **Display:** Tela Touchscreen de 7 polegadas (com cabo HDMI e alimentação/touch via USB)
+- **Display:** Tela de 7 polegadas, resolução 1024x600, display IPS LCD (define as fronteiras do layout CSS do Front-End)
 - **Visão:** Câmera Módulo oficial Raspberry (rpicam) ou Webcam USB de boa resolução (e com microfone embutido, preferencialmente)
 - **Áudio In/Out:** Microfone USB (caso a webcam não tenha) e um Mini Alto-falante (conexão P2 ou USB)
 - **Refrigeração:** Kit de dissipadores de calor e Cooler (ventoinha) 5V para ligação nos pinos GPIO
@@ -62,12 +62,12 @@ Responsável por colocar o usuário na mesma rede e rastreá-lo.
 - **Serviços:** `QRCodeGeneratorService: Monta a string do Wi-Fi e gera o arquivo PNG do QR Code na hora.`, `NetworkScanService: Executa varreduras na rede local (ex: usando arp -a ou scapy) para descobrir quem acabou de entrar.`
 - **Jobs:** `arp_monitor_job: Quando um onboarding começa, esse job é acionado para ficar "escutando" a rede a cada 2 segundos. Assim que um novo IP/MAC aparece na tabela ARP do Raspberry Pi, ele captura esse dado, vincula ao usuário em frente ao espelho e encerra o job.`
 
-### app-widgets
+### app-widgets ✅ (Concluído)
 Os módulos visuais como clima, agenda e notícias.
 
-- **Models:** `WidgetPreference: Tabela que liga um Profile a uma configuração. Ex: O módulo de Clima para o Vitor mostra a cidade X; para outra pessoa, mostra a cidade Y.`
-- **Serviços:** `WeatherFetcherService: Bate na API de clima (ex: OpenWeather) e formata os dados.`, `NewsFetcherService: Traz as manchetes do dia.`
-- **Jobs:** `update_widgets_job: Como o espelho não pode travar esperando a internet, você usa tarefas agendadas (um cron job ou Celery beat) para atualizar o clima a cada 1 hora e as notícias a cada 3 horas, salvando no banco ou no cache. A interface web apenas lê esse cache localmente, garantindo que a tela responda na velocidade da luz.`
+- **Models:** `WidgetPreference: Tabela que liga um Profile a uma configuração.`
+- **Serviços:** `WeatherFetcherService: Bate na API de clima (Open-Meteo) com Cache FileBased.`, `NewsFetcherService: Traz as manchetes do RSS do G1 com embaralhamento e cache.`
+- **Jobs:** `update_widgets_job: Job contínuo que roda a cada hora limpando e atualizando o cache para a tela responder na velocidade da luz.`
 
 
 ---

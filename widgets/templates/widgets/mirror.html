@@ -25,10 +25,14 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: auto 1fr auto;
-            width: 100%;
-            height: 100vh;
+            /* Dimensões do Display de 7 polegadas IPS do Raspberry Pi (1024x600) */
+            width: 1024px;
+            height: 600px;
+            /* Centraliza a tela para visualização no PC */
+            margin: 0 auto;
             padding: 40px;
             box-sizing: border-box;
+            position: relative;
         }
 
         .top-left { grid-column: 1; grid-row: 1; text-align: left; }
@@ -91,7 +95,46 @@
             text-align-last: right; /* A última linha gruda na direita */
             border-right: 2px solid rgba(255, 255, 255, 0.2);
             padding-right: 15px;
+            cursor: pointer; /* Indica que é clicável no PC, no espelho será touch */
+            transition: color 0.3s;
         }
+        
+        .news-item:hover { color: #ffffff; }
+
+        /* Container que exibe a notícia completa */
+        .news-detail-widget {
+            margin-top: 20px;
+            width: 100%;
+            display: none; /* Escondido por padrão */
+        }
+        
+        .news-detail-content {
+            font-size: 1.1rem;
+            color: #eeeeee;
+            text-align: justify;
+            max-height: 250px; /* Limita a altura para habilitar o scroll */
+            overflow-y: auto;  /* Ativa a barra de rolagem */
+            padding-right: 15px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* Personalizando o Scrollbar pra ficar bonitão no espelho */
+        .news-detail-content::-webkit-scrollbar { width: 6px; }
+        .news-detail-content::-webkit-scrollbar-track { background: transparent; }
+        .news-detail-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .news-detail-content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        .back-btn {
+            font-size: 1rem;
+            color: #888888;
+            cursor: pointer;
+            text-align: right;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 10px;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: #ffffff; }
         
         .status-badge {
             font-size: 0.9rem;
@@ -125,9 +168,15 @@
                 <div class="weather-desc" id="weatherDesc">Carregando clima...</div>
             </div>
 
-            <!-- Widget de Notícias -->
+            <!-- Widget de Notícias (Manchetes) -->
             <div id="newsDisplay" class="news-widget">
                 Carregando notícias...
+            </div>
+            
+            <!-- Widget de Notícia Completa (Escondido) -->
+            <div id="newsDetailDisplay" class="news-widget" style="display: none;">
+                <div class="news-detail-content" id="newsDetailText"></div>
+                <div class="back-btn" onclick="hideNewsDetail()">⬅ Voltar para as manchetes</div>
             </div>
         </div>
 
@@ -169,10 +218,12 @@
         updateTime();
         setInterval(updateTime, 1000);
 
+        // Variável global para armazenar as notícias e permitir o clique
+        let globalNewsData = [];
+
         // --- Comunicação com a NOSSA API em Python (Django) ---
         async function fetchWidgetsData() {
             try {
-                // Chama a API interna do nosso próprio servidor
                 const response = await fetch('/api/data/');
                 const data = await response.json();
                 
@@ -183,9 +234,10 @@
                 // --- 2. Atualiza as Notícias ---
                 const newsContainer = document.getElementById('newsDisplay');
                 if (data.news && data.news.length > 0) {
+                    globalNewsData = data.news;
                     let htmlNews = "";
-                    data.news.forEach(headline => {
-                        htmlNews += `<div class="news-item">${headline}</div>`;
+                    data.news.forEach((newsObj, index) => {
+                        htmlNews += `<div class="news-item" onclick="showNewsDetail(${index})">${newsObj.title}</div>`;
                     });
                     newsContainer.innerHTML = htmlNews;
                 } else {
@@ -196,6 +248,27 @@
                 console.error("Erro ao comunicar com o servidor Django: ", error);
                 document.getElementById('weatherDesc').textContent = "Servidor Offline";
             }
+        }
+
+        // --- Funções de Interação (Clique na Notícia) ---
+        function showNewsDetail(index) {
+            const newsObj = globalNewsData[index];
+            
+            // Esconde as manchetes e mostra os detalhes
+            document.getElementById('newsDisplay').style.display = 'none';
+            document.getElementById('newsDetailDisplay').style.display = 'block';
+            
+            // Preenche o texto com título em negrito + descrição
+            document.getElementById('newsDetailText').innerHTML = `
+                <strong style="color: white; font-size: 1.2rem; display: block; margin-bottom: 10px; text-align: right;">${newsObj.title}</strong>
+                <span style="color: #cccccc;">${newsObj.description}</span>
+            `;
+        }
+
+        function hideNewsDetail() {
+            // Volta a mostrar as manchetes e esconde a notícia completa
+            document.getElementById('newsDetailDisplay').style.display = 'none';
+            document.getElementById('newsDisplay').style.display = 'block';
         }
 
         // Chama imediatamente e depois atualiza a cada 5 minutos
