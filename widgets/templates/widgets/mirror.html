@@ -265,15 +265,22 @@
                 </div>
             </div>
 
-            <!-- Painel Discreto de Usuário Logado -->
-            <div id="userLoggedPanel" style="display: none; position: absolute; bottom: 45px; left: 0; background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); align-items: center; gap: 12px; z-index: 50;">
-                <!-- Avatar genérico (no futuro puxa a foto do FaceData) -->
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: #333; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <!-- Container do Usuário Logado -->
+            <div id="userLoggedContainer" style="display: none; position: absolute; bottom: 35px; left: 0; z-index: 50;">
+                <!-- Pílula Premium -->
+                <div style="background: rgba(0,0,0,0.6); padding: 10px 15px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); display: flex; align-items: center; gap: 12px;">
+                    <!-- Avatar genérico (no futuro puxa a foto do FaceData) -->
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #333; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Sessão Ativa</div>
+                        <div id="loggedUserName" style="font-size: 1.1rem; color: #fff; font-weight: bold;">Nome</div>
+                    </div>
                 </div>
-                <div>
-                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Sessão Ativa</div>
-                    <div id="loggedUserName" style="font-size: 1.1rem; color: #fff; font-weight: bold;">Nome</div>
+                <!-- Botão Sair Discreto -->
+                <div style="text-align: center; margin-top: 6px;">
+                    <span style="font-size: 0.7rem; color: #555; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s;" onclick="debugSetState({status: 'standby'})" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Sair</span>
                 </div>
             </div>
 
@@ -369,7 +376,7 @@
                 const state = await response.json();
                 
                 const panel = document.getElementById('onboardingPanel');
-                const loggedPanel = document.getElementById('userLoggedPanel');
+                const loggedPanel = document.getElementById('userLoggedContainer');
                 const listening = document.getElementById('stateListening');
                 const confirm = document.getElementById('stateConfirm');
                 const badge = document.getElementById('cameraStatus');
@@ -378,7 +385,7 @@
                 if (state.status === "standby" || state.status === "known_detected") {
                     panel.style.display = 'none';
                     if (state.status === "known_detected") {
-                        loggedPanel.style.display = 'flex';
+                        loggedPanel.style.display = 'block';
                         document.getElementById('loggedUserName').textContent = state.name;
                         badge.style.display = 'none'; // Esconde a badge de standby
                     } else {
