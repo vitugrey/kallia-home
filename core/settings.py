@@ -95,6 +95,15 @@ DATABASES = {
     }
 }
 
+# Sistema de Cache Compartilhado (FileBased)
+# Permite que o 'update_widgets_job' (background) e o servidor Web acessem a mesma memória
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / '.django_cache',
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

@@ -1,5 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
+import random
 from django.core.cache import cache
 
 class NewsFetcherService:
@@ -27,12 +28,17 @@ class NewsFetcherService:
             # Navega no XML do RSS
             root = ET.fromstring(response.content)
             
-            headlines = []
-            # O padrão RSS tem os itens dentro de channel -> item
-            # Pegamos apenas as 3 últimas notícias
-            for item in root.findall('./channel/item')[:3]:
+            all_headlines = []
+            # Pega as top 15 notícias para ter bastante variação
+            for item in root.findall('./channel/item')[:15]:
                 title = item.find('title').text
-                headlines.append(title)
+                all_headlines.append(title)
+                
+            # Sorteia 3 manchetes aleatórias para que a tela não fique "congelada" na mesma notícia por dias
+            if len(all_headlines) >= 3:
+                headlines = random.sample(all_headlines, 3)
+            else:
+                headlines = all_headlines
                 
             # Salva no cache por 3 horas (10800 segundos) para poupar internet
             cache.set(cache_key, headlines, 10800)

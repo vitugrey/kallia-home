@@ -20,7 +20,7 @@ def api_widgets_data(request):
     lat = -22.9064
     lon = -43.1822
     city = "Rio de Janeiro"
-    news_category = "tecnologia"
+    news_category = "geral" # A categoria 'tecnologia' demora dias para atualizar. 'geral' atualiza a cada minuto!
 
     # Usa os nossos serviços em Python!
     weather_data = WeatherFetcherService.get_weather(lat, lon)
