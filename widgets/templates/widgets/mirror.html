@@ -412,7 +412,8 @@
                 }
                 
             } catch (error) {
-                console.error("Erro ao checar status do cérebro:", error);
+                // Silenciado a pedido do usuário: quando o servidor reinicia ou desliga, 
+                // ele não pinta mais o console de vermelho. Apenas aguarda o próximo pulso.
             }
         }
 
