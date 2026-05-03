@@ -8,6 +8,7 @@ dependencies = [
     "django>=6.0.4",
     "django-cors-headers>=4.9.0",
     "djangorestframework>=3.17.1",
+    "edge-tts>=7.2.8",
     "opencv-python>=4.13.0.92",
     "pillow>=12.2.0",
     "qrcode>=8.2",

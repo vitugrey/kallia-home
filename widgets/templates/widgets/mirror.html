@@ -178,6 +178,9 @@
             100% { transform: scale(1); opacity: 0.8; }
         }
         .mic-pulse {
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 <body>
@@ -190,7 +193,8 @@
         <button onclick="debugSetState({status: 'unknown_detected'})">1. Detectar Desconhecido</button>
         <button onclick="debugSetState({status: 'onboarding_confirm_name', options: ['Vitor', 'Senhor Vitor', 'Mestre Vitor', 'Lorde Vitor']})">2. Simular STT "Vitor"</button>
         <button onclick="debugSetState({status: 'known_detected', name: 'Vitor'})">3. Detectar Conhecido (Vitor)</button>
-        <button onclick="debugSetState({status: 'standby'})">4. Voltar para Standby (Espelho Limpo)</button>
+        <button onclick="debugSetState({status: 'guest_wifi'})">4. Compartilhar Wi-Fi (Visitante)</button>
+        <button onclick="debugSetState({status: 'standby', force_logout: true})">5. Voltar para Standby (Espelho Limpo)</button>
     </div>
 
     <!-- Overlay removido a pedido do usuário, a UI agora é discreta no bottom-left -->
@@ -231,9 +235,23 @@
             </div>
         </div>
 
-        <!-- Meio: Saudação Principal da Inteligência Artificial -->
+        <!-- Meio: Saudação Principal / QR Code de Wi-Fi -->
         <div class="middle-center">
-            <!-- Saudação removida para dar um aspecto mais limpo -->
+            
+            <!-- Painel de Compartilhamento de Wi-Fi (Visitantes) -->
+            <div id="guestWifiPanel" style="display: none; background: rgba(0,0,0,0.85); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); text-align: center; max-width: 350px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div style="font-size: 1.5rem; color: #fff; font-weight: bold; margin-bottom: 10px;">Wi-Fi para Visitantes</div>
+                <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 25px;">Aponte a câmera do seu celular para o QR Code abaixo para conectar à rede automaticamente.</div>
+                
+                <div style="background: white; padding: 15px; border-radius: 10px; display: inline-block;">
+                    <img id="wifiQrImage" src="" alt="QR Code Wi-Fi" style="width: 200px; height: 200px; display: block;" />
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <button class="btn-discreet" onclick="manualLogout()" style="font-size: 0.8rem;">⬅ Ocultar QR Code</button>
+                </div>
+            </div>
+
         </div>
 
         <!-- Base Esquerda: Status da Câmera -->
@@ -427,6 +445,12 @@
             const confirm = document.getElementById('stateConfirm');
             const badge = document.getElementById('cameraStatus');
             const widgetsBox = document.getElementById('personalizedWidgets');
+            const wifiPanel = document.getElementById('guestWifiPanel');
+            
+            // Oculta o painel de wifi por padrão em qualquer mudança de estado principal
+            if (state.status !== "guest_wifi") {
+                wifiPanel.style.display = 'none';
+            }
             
             // 1. Standby ou Conhecido
             if (state.status === "standby" || state.status === "known_detected") {
@@ -485,6 +509,19 @@
                     });
                 }
                 document.getElementById('nameOptions').innerHTML = htmlOpts;
+            }
+            // 4. Mostrando QR Code do Wi-Fi para Visitantes
+            else if (state.status === "guest_wifi") {
+                // Deixa a tela limpa e mostra só o painel central do Wi-Fi
+                loggedPanel.style.display = 'none';
+                panel.style.display = 'none';
+                widgetsBox.style.display = 'none';
+                badge.style.display = 'none';
+                
+                wifiPanel.style.display = 'block';
+                if (state.wifi_qr_url) {
+                    document.getElementById('wifiQrImage').src = state.wifi_qr_url;
+                }
             }
         }
 

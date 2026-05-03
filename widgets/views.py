@@ -71,6 +71,13 @@ def api_debug_set_state(request):
             # Adiciona a URL do áudio no pacote de estado que o HTML vai receber
             data["audio_url"] = audio_url
             
+        # [NOVIDADE]: Se for visitante pedindo Wi-Fi, gera o QR Code e envia a URL
+        if data.get("status") == "guest_wifi":
+            from network.services.wifi_service import WifiGuestService
+            # Para testes, usando credenciais fake (No futuro virá do banco de dados)
+            qr_url = WifiGuestService.generate_guest_qr_code()
+            data["wifi_qr_url"] = qr_url
+            
         MirrorStateService.set_state(data)
         return JsonResponse({"success": True})
     return JsonResponse({"success": False})
