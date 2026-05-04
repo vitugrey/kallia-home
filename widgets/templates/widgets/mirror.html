@@ -193,8 +193,7 @@
         <button onclick="debugSetState({status: 'unknown_detected'})">1. Detectar Desconhecido</button>
         <button onclick="debugSetState({status: 'onboarding_confirm_name', options: ['Vitor', 'Senhor Vitor', 'Mestre Vitor', 'Lorde Vitor']})">2. Simular STT "Vitor"</button>
         <button onclick="debugSetState({status: 'known_detected', name: 'Vitor'})">3. Detectar Conhecido (Vitor)</button>
-        <button onclick="debugSetState({status: 'standby'})">4. Simular Falso Negativo (Câmera cega, espera 10s)</button>
-        <button onclick="debugSetState({status: 'standby', force_logout: true})">5. Voltar para Standby (Pular 10s)</button>
+        <button onclick="debugSetState({status: 'standby'})">4. Voltar para Standby (Aguardar 10s)</button>
     </div>
 
     <!-- Overlay removido a pedido do usuário, a UI agora é discreta no bottom-left -->
